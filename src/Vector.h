@@ -13,7 +13,11 @@ class Vector
     int  capacity_ = 0;
     T*   elem_     = nullptr;
 
-    // 复制数组区间A[lo, hi)
+
+    // =================================================================
+    //                           Allocated Functions
+    // =================================================================
+    // copy array A from lo to hi
     void copyFrom(T const* A, Rank lo, Rank hi)
     {
         if (elem_ != nullptr)
@@ -24,7 +28,8 @@ class Vector
             elem_[size_++] = A[lo++];
     }
 
-    // 空间不足时扩容
+    // expanding capacity when capacity is not enough
+    // normally, expanding twice capacity then old one
     void expand()
     {
         if (size_ < capacity_)
@@ -41,31 +46,50 @@ class Vector
         delete[] old_elem;
     }
 
-    // 装填因子过小时压缩
+    // shrink, the inversion of expand
     void shrink()
     {
-        if (capacity_ == size_)
+        // if capacity_ is smaller than DEFAULT_CAPACITY
+        // it's not nessesary to shrink
+        if (capacity_ < DEFAULT_CAPACITY)
+            return;
+
+        // shrinking when current size is less than 25% capacity
+        if (size_ << 2 > capacity_)
             return;
 
         T* old_elem = elem_;
-        elem_       = new T[capacity_ = size_];
+        // shrinking half capacity than old one
+        elem_ = new T[capacity_ >> 1];
         for (int i = 0; i < size_; i++)
             elem_[i] = old_elem[i];
 
         delete[] old_elem;
     }
 
+
+    // =================================================================
+    //                              Basic Algorithm
+    // =================================================================
     bool bubble(Rank lo, Rank hi);        // 扫描交换
-    void bubbleSort(Rank lo, Rank hi);    // 气泡排序算法
     Rank max(Rank lo, Rank hi);           // 选取最大元素
-    void selectSorted(Rank lo, Rank hi);  // 选择排序算法
-    void merge(Rank lo, Rank hi);         // 归并算法
-    void mergeSort(Rank lo, Rank hi);     // 归并排序算法
     Rank partition(Rank lo, Rank hi);     // 轴点构造算法
+    void merge(Rank lo, Rank hi);         // 归并算法
+
+
+    // =================================================================
+    //                              Inner Sort Algorithm
+    // =================================================================
+    void bubbleSort(Rank lo, Rank hi);    // 气泡排序算法
+    void selectSorted(Rank lo, Rank hi);  // 选择排序算法
+    void mergeSort(Rank lo, Rank hi);     // 归并排序算法
     void quickSort(Rank lo, Rank hi);     // 快速排序算法
     void heapSort(Rank lo, Rank hi);      // 堆排序
 
    public:
+    // =================================================================
+    //                        Constructors/Deconstructor
+    // =================================================================
     Vector(int c = DEFAULT_CAPACITY, int s = 0, T v = 0)
     {
         elem_ = new T[capacity_ = c];
@@ -86,24 +110,39 @@ class Vector
             delete[] elem_;
     }
 
-    // 只读接口
+
+    // =================================================================
+    //                           Read Only Interface
+    // =================================================================
     T    front() const { return elem_[0]; }
-    T    get(int r) const;               // 获取秩为r的元素
+
+    // 获取秩为r的元素
+    T    get(int r) const { return elem_[r]; }
     int  size() const { return size_; }  // 返回元素总数
     bool empty() const { return !size_; }
-    int disordered() const;  // 判断所有元素是否已按照非降序排列
+
+    // 判断所有元素是否已按照非降序排列
+    int disordered() const
+    {
+        for (int i = 0; i < size_ - 1; i++)
+            if (elem_[i] > elem_[i + 1])
+                return false;
+        return true;
+    }
 
     Rank find(const T& e) const { return find(e, 0, size_); }
     Rank find(const T& e, Rank lo, Rank hi) const { return find(e, lo, hi); }
-
     Rank search(const T& e) const
     {
         return (0 >= size_) ? -1 : search(e, 0, size_);
     }
     Rank search(const T& e, Rank lo, Rank hi) const;
 
-    // 可写接口
-    T&         operator[](Rank r) const;
+    // =================================================================
+    //                           Write/Read Interface
+    // =================================================================
+    T& operator[](Rank r) const { return elem_[r]; }
+
     Vector<T>& operator=(const Vector<T>& V)
     {
         if (elem_ != nullptr)
@@ -111,16 +150,37 @@ class Vector
         copyFrom(V.begin(), 0, V.size());
         return *this;  // 方便链式复制
     }
-
     T*   begin() const { return elem_; }
-    void put(int r, const T& e);  //用e替换秩为r元素的数值
 
-    T remove(Rank r);  //移除秩为r的元素，返回元素中原存放的对象
-    int remove(Rank lo, Rank hi);
+    //用e替换秩为r元素的数值
+    void put(int r, const T& e) { elem_[r] = e; }
+
+    int remove(Rank lo, Rank hi)
+    {
+        if (lo == hi) return 0;
+        while (hi < size_)
+        {
+            elem_[lo++] = elem_[hi++];
+        }
+        size_ = lo;
+        shrink();
+        return hi - lo;
+    }
+
+    //移除秩为r的元素，返回元素中原存放的对象
+    T remove(Rank r)
+    {
+        T tmp = elem_[r];
+        remove(r, r + 1);
+        return tmp;
+    }
 
     Rank insert(Rank r, const T& e);  // e作为秩为r元素插入，原后继元素依次后移
     Rank insert(const T& e) { return insert(size_, e); }  // 插入元素到最后
 
+    // =================================================================
+    //                      Sort Algorithm Interface
+    // =================================================================
     void sort(Rank lo, Rank hi);         // 局部排序
     void sort() { sort(0, size_); }      // 整体排序
     void unsort(Rank lo, Rank hi);       // 局部置乱
@@ -128,7 +188,9 @@ class Vector
     void deduplicate();                  // 无序去重
     void uniquify();                     // 有序去重
 
-    // 遍历
+    // =================================================================
+    //                          Traverse Alogrithm
+    // =================================================================
     void traverse(void (*)(T&));
     template <typename VST>
     void traverse(VST&);
