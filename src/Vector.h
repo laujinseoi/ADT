@@ -124,10 +124,11 @@ class Vector
     // 判断所有元素是否已按照非降序排列
     int disordered() const
     {
+        int n = 0;
         for (int i = 0; i < size_ - 1; i++)
             if (elem_[i] > elem_[i + 1])
-                return false;
-        return true;
+                ++n;
+        return n;
     }
 
     Rank find(const T& e) const { return find(e, 0, size_); }
@@ -185,15 +186,44 @@ class Vector
     void sort() { sort(0, size_); }      // 整体排序
     void unsort(Rank lo, Rank hi);       // 局部置乱
     void unsort() { unsort(0, size_); }  // 整体置乱
-    void deduplicate();                  // 无序去重
-    void uniquify();                     // 有序去重
+
+    // 无序去重
+    int deduplicate()
+    {
+        int old_size = size_;
+        Rank i = 0;
+        while (i < size_)
+            find(elem_[i], i + 1, size_) < 0 ? ++i : remove(i);
+        return old_size - size_;
+    }
+
+    // 有序去重
+    void uniquify()
+    {
+        Rank i = 0, j = 0;
+        int  old_size = size_;
+        // 低效版
+        // while (i < size_ - 1)
+        //     elem_[i] == elem_[i + 1] ? ++i : remove(i);
+        // return old_size - size_;
+        // 高效版, 双索引法,直接进行值替换
+        while (++j < size_)
+            if (elem_[i] != elem_[j])
+                elem_[++i] = elem_[j];
+        // TODO
+        
+    }
 
     // =================================================================
     //                          Traverse Alogrithm
     // =================================================================
     void traverse(void (*)(T&));
     template <typename VST>
-    void traverse(VST&);
+    void traverse(VST& visit)
+    {
+        for(Rank i = 0; i < size_; ++i)
+            visit(elem_[i]);
+    }
 };
 }  // namespace adt
 #endif  // __AD_VECTOR_H__
