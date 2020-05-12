@@ -131,18 +131,52 @@ class Vector
         return n;
     }
 
+    // 无序查找
     Rank find(const T& e) const { return find(e, 0, size_); }
     Rank find(const T& e, Rank lo, Rank hi) const { return find(e, lo, hi); }
+
+    // 有序查找
     Rank search(const T& e) const
     {
         return (0 >= size_) ? -1 : search(e, 0, size_);
     }
-    Rank search(const T& e, Rank lo, Rank hi) const;
+
+    Rank search(const T& e, Rank lo, Rank hi) const 
+    {
+        // 二分查找
+        // return binSearch(elem_, e, lo, hi);
+
+        // fibonacci查找
+        return fibSearch(elem_, e, lo, hi);
+    }
+
+    Rank binSearchA(const Vector<T>& elem, const T& e, Rank lo, Rank hi) const 
+    {
+        while (lo < hi) 
+        {
+            Rank mi = (lo + hi) >> 1;
+            if (elem[mi] == e)
+                return mi;
+            else if (elem[mi] < e)
+                lo = mi + 1;
+            else if (elem[mi] > e)
+                hi = mi;
+        }
+        return -1;
+    }
+
+    Rank fibSearch(const Vector<T>& elem, const T& e, Rank lo, Rank hi) const 
+    {
+
+    }
 
     // =================================================================
     //                           Write/Read Interface
     // =================================================================
-    T& operator[](Rank r) const { return elem_[r]; }
+    T& operator[](Rank r) const
+    {
+        return elem_[r];
+    }
 
     Vector<T>& operator=(const Vector<T>& V)
     {
@@ -198,7 +232,7 @@ class Vector
     }
 
     // 有序去重
-    void uniquify()
+    int uniquify()
     {
         Rank i = 0, j = 0;
         int  old_size = size_;
@@ -210,8 +244,9 @@ class Vector
         while (++j < size_)
             if (elem_[i] != elem_[j])
                 elem_[++i] = elem_[j];
-        // TODO
-        
+        size_ = ++i;
+        shrink();
+        return j - i;
     }
 
     // =================================================================
