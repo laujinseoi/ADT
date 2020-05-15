@@ -1,5 +1,6 @@
 #ifndef __ADT_VECTOR_H__
 #define __ADT_VECTOR_H__
+#include "Fib.h"
 namespace adt
 {
 typedef int Rank;
@@ -163,6 +164,26 @@ class Vector
                 hi = mi;
         }
         return -1;
+    }
+
+    Rank binSearchB(const Vector<T>& elem, const T& e, Rank lo, Rank hi)
+    {
+        while(hi - lo > 1)
+        {
+            Rank mi = (lo + hi) >> 1;
+            (elem[mi] > e) ? lo = mi : hi = mi;
+        }
+        return (e == elem[lo]) ? lo : -1;
+    }
+
+    Rank binSearchC(const Vector<T>& elem, const T& e, Rank lo, Rank hi)
+    {
+        while(lo < hi)
+        {
+            Rank mi = (lo + hi) >> 1;
+            elem[mi] > e ? lo = mi + 1 : hi = mi;
+        }
+        return --lo;
     }
 
     Rank fibSearch(const Vector<T>& elem, const T& e, Rank lo, Rank hi) const 
