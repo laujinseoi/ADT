@@ -68,22 +68,86 @@ class Vector
         delete[] old_elem;
     }
 
+    void swap(T& e1, T&e2)
+    {
+        T tmp = e2;
+        e2 = e1;
+        e1 = tmp;
+    }
+
 
     // =================================================================
     //                              Basic Algorithm
     // =================================================================
-    bool bubble(Rank lo, Rank hi);        // 扫描交换
+    // 扫描交换
+    bool bubble(Rank lo, Rank hi)
+    {
+        bool sorted = true;
+        while(++lo < hi)
+        {
+            if (elem_[lo - 1] > elem_[lo])
+            {
+                sorted = false;
+                swap(elem_[lo - 1], elem_[lo]);
+            }
+        }
+        return sorted;
+    }
+
     Rank max(Rank lo, Rank hi);           // 选取最大元素
     Rank partition(Rank lo, Rank hi);     // 轴点构造算法
-    void merge(Rank lo, Rank hi);         // 归并算法
+
+    // 归并算法
+    void merge(Rank lo, Rank mi, Rank hi)
+    {
+        T* A = elem_ + lo;
+        int lb = mi - lo;
+        T* B = new T[lb];
+        for(Rank i = 0; i < lb; B[i] = A[i++]);
+
+        int lc = hi - mi;
+        T* C = elem_ + mi;
+
+        for (Rank i = 0, j = 0, k= 0; (j < lb) || (k < lc);)
+        {
+            if ((j < lb) && (!(k < lc) || (B[j] <= C[k])))
+                A[i++] = B[j++];
+            if ((k < lc) && (!(j < lb) || (C[k] > B[j])))
+                A[i++] = C[k++];
+        }
+
+        delete []B;
+    }
 
 
     // =================================================================
     //                              Inner Sort Algorithm
     // =================================================================
-    void bubbleSort(Rank lo, Rank hi);    // 气泡排序算法
-    void selectSorted(Rank lo, Rank hi);  // 选择排序算法
-    void mergeSort(Rank lo, Rank hi);     // 归并排序算法
+
+    // 气泡排序算法
+    void bubbleSort(Rank lo, Rank hi)
+    {
+        while(!bubble(lo, hi--));
+    }
+
+    // 选择排序算法
+    void selectSorted(Rank lo, Rank hi)
+    {
+
+    }
+
+    // 归并排序算法
+    void mergeSort(Rank lo, Rank hi)
+    {
+        if (hi - lo < 2)
+            return;
+
+        int mi = (hi + lo) >> 1;
+        mergeSort(lo, mi);
+        mergeSort(mi, hi);
+        merge(lo, mi, hi);
+    }
+
     void quickSort(Rank lo, Rank hi);     // 快速排序算法
     void heapSort(Rank lo, Rank hi);      // 堆排序
 
@@ -134,7 +198,14 @@ class Vector
 
     // 无序查找
     Rank find(const T& e) const { return find(e, 0, size_); }
-    Rank find(const T& e, Rank lo, Rank hi) const { return find(e, lo, hi); }
+    Rank find(const T& e, Rank lo, Rank hi) const 
+    {
+        while(lo++ < hi)
+            if (elem_[lo] == e)
+                return lo - 1;
+
+        return -1;
+    }
 
     // 有序查找
     Rank search(const T& e) const
@@ -237,7 +308,12 @@ class Vector
     // =================================================================
     //                      Sort Algorithm Interface
     // =================================================================
-    void sort(Rank lo, Rank hi);         // 局部排序
+
+    // 局部排序
+    void sort(Rank lo, Rank hi)
+    {
+
+    }
     void sort() { sort(0, size_); }      // 整体排序
     void unsort(Rank lo, Rank hi);       // 局部置乱
     void unsort() { unsort(0, size_); }  // 整体置乱
