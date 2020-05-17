@@ -1,9 +1,9 @@
 #ifndef __ADT_VECTOR_H__
 #define __ADT_VECTOR_H__
+#include "Def.h"
 #include "Fib.h"
 namespace adt
 {
-typedef int Rank;
 #define DEFAULT_CAPACITY 3
 
 template <class T>
